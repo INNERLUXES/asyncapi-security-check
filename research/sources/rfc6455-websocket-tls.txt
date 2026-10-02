@@ -1,0 +1,18 @@
+Source: https://www.rfc-editor.org/rfc/rfc6455.txt
+
+10.6.  Connection Confidentiality and Integrity
+
+   Connection confidentiality and integrity is provided by running the
+   WebSocket Protocol over TLS (wss URIs).  WebSocket implementations
+   MUST support TLS and SHOULD employ it when communicating with their
+   peers.
+
+   For connections using TLS, the amount of benefit provided by TLS
+   depends greatly on the strength of the algorithms negotiated during
+   the TLS handshake.  For example, some TLS cipher mechanisms don't
+   provide connection confidentiality.  To achieve reasonable levels of
+   protection, clients should use only Strong TLS algorithms.  "Web
+   Security Context: User Interface Guidelines"
+   [W3C.REC-wsc-ui-20100812] discusses what constitutes Strong TLS
+   algorithms.  [RFC5246] provides additional guidance in Appendix A.5
+   and Appendix D.3.

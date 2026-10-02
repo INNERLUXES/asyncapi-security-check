@@ -1,0 +1,574 @@
+Source: https://raw.githubusercontent.com/asyncapi/spec/v3.0.0/spec/asyncapi.md
+
+## Definitions
+
+### Server
+A server MAY be a message broker that is capable of sending and/or receiving between a sender and receiver. A server MAY be a service with WebSocket API that enables message-driven communication between browser-to-server or server-to-server.
+
+### Application
+An application is any kind of computer program or a group of them. It MUST be a sender, a receiver, or both. An application MAY be a microservice, IoT device (sensor), mainframe process, message broker, etc. An application MAY be written in any number of different programming languages as long as they support the selected protocol. An application MUST also use a protocol supported by the server in order to connect and exchange messages.
+
+### Sender
+A sender is a type of application, that is sending messages to channels. A sender MAY send to multiple channels depending on the server, protocol, and use-case pattern.
+
+### Receiver
+A receiver is a type of application that is receiving messages from channels. A receiver MAY receive from multiple channels depending on the server, protocol, and the use-case pattern. A receiver MAY forward a received message further without changing it. A receiver MAY act as a consumer and react to the message. A receiver MAY act as a processor that, for example, aggregates multiple messages in one and forwards them.
+
+### Message
+A message is the mechanism by which information is exchanged via a channel between servers and applications. A message MAY contain a payload and MAY also contain headers. The headers MAY be subdivided into protocol-defined headers and header properties defined by the application which can act as supporting metadata. The payload contains the data, defined by the application, which MUST be serialized into a format (JSON, XML, Avro, binary, etc.). Since a message is a generic mechanism, it can support multiple interaction patterns such as event, command, request, or response.
+
+### Channel
+A channel is an addressable component, made available by the server, for the organization of messages. Sender applications send messages to channels and receiver applications receive messages from channels. Servers MAY support many channel instances, allowing messages with different content to be addressed to different channels. Depending on the server implementation, the channel MAY be included in the message via protocol-defined headers.
+
+### Protocol
+A protocol is the mechanism (wireline protocol or API) by which messages are exchanged between the application and the channel. Example protocols include, but are not limited to, AMQP, HTTP, JMS, Kafka, Anypoint MQ, MQTT, Solace, STOMP, Mercure, WebSocket, Google Pub/Sub, Pulsar.
+
+### Bindings
+A "binding" (or "protocol binding") is a mechanism to define protocol-specific information. Therefore, a protocol binding MUST define protocol-specific information only.
+
+#### AsyncAPI Object
+
+This is the root document object for the API specification.
+It combines resource listing and API declaration together into one document.
+
+##### Fixed Fields
+
+Field Name | Type | Description
+---|:---:|---
+asyncapi | AsyncAPI Version String | REQUIRED. Specifies the AsyncAPI Specification version being used. It can be used by tooling Specifications and clients to interpret the version. The structure shall be major.minor.patch, where patch versions _must_ be compatible with the existing major.minor tooling. Typically patch versions will be introduced to address errors in the documentation, and tooling should typically be compatible with the corresponding major.minor (1.0.*). Patch versions will correspond to patches of this document.
+id | Identifier | Identifier of the application the AsyncAPI document is defining.
+info | Info Object | REQUIRED. Provides metadata about the API. The metadata can be used by the clients if needed.
+servers | Servers Object | Provides connection details of servers.
+defaultContentType | Default Content Type | Default content type to use when encoding/decoding a message's payload.
+channels | Channels Object | The channels used by this application.
+operations | Operations Object | The operations this application MUST implement.
+components | Components Object | An element to hold various reusable objects for the specification. Everything that is defined inside this object represents a resource that MAY or MAY NOT be used in the rest of the document and MAY or MAY NOT be used by the implemented Application.
+
+This object MAY be extended with Specification Extensions.
+
+#### Identifier
+
+This field represents a unique universal identifier of the application the AsyncAPI document is defining. It must conform to the URI format, according to RFC3986.
+
+It is RECOMMENDED to use a URN to globally and uniquely identify the application during long periods of time, even after it becomes unavailable or ceases to exist.
+
+###### Examples
+
+#### Servers Object
+
+The Servers Object is a map of Server Objects.
+
+##### Patterned Fields
+
+Field Pattern | Type | Description
+---|:---:|---
+^[A-Za-z0-9_\-]+$ | Server Object | Reference Object | The definition of a server this application MAY connect to.
+
+##### Servers Object Example
+
+#### Server Object
+
+An object representing a message broker, a server or any other kind of computer program capable of sending and/or receiving data. This object is used to capture details such as URIs, protocols and security configuration. Variable substitution can be used so that some details, for example usernames and passwords, can be injected by code generation tools.
+
+##### Fixed Fields
+
+Field Name | Type | Description
+---|:---:|---
+host | string | REQUIRED. The server host name. It MAY include the port. This field supports Server Variables. Variable substitutions will be made when a variable is named in {braces}.
+protocol | string | REQUIRED. The protocol this server supports for connection.
+protocolVersion | string | The version of the protocol used for connection. For instance: AMQP 0.9.1, HTTP 2.0, Kafka 1.0.0, etc.
+pathname | string | The path to a resource in the host. This field supports Server Variables. Variable substitutions will be made when a variable is named in {braces}.
+description | string | An optional string describing the server. CommonMark syntax MAY be used for rich text representation.
+title | string | A human-friendly title for the server.
+summary | string | A short summary of the server.
+variables | Mapstring, [Server Variable Object | Reference Object]] | A map between a variable name and its value.  The value is used for substitution in the server's host and pathname template.
+security | [Security Scheme Object | Reference Object] | A declaration of which security schemes can be used with this server. The list of values includes alternative security scheme objects that can be used. Only one of the security scheme objects need to be satisfied to authorize a connection or operation.
+tags | Tags Object | A list of tags for logical grouping and categorization of servers.
+externalDocs | External Documentation Object | Reference Object | Additional external documentation for this server.
+bindings | Server Bindings Object | Reference Object | A map where the keys describe the name of the protocol and the values describe protocol-specific definitions for the server.
+
+##### Server Object Example
+
+A single server would be described as:
+
+An example of a server that has a pathname:
+
+#### Server Variable Object
+
+An object representing a Server Variable for server URL template substitution.
+
+##### Fixed Fields
+
+Field Name | Type | Description
+---|:---:|---
+enum | [string] | An enumeration of string values to be used if the substitution options are from a limited set.
+default | string | The default value to use for substitution, and to send, if an alternate value is _not_ supplied.
+description | string | An optional description for the server variable. CommonMark syntax MAY be used for rich text representation.
+examples | [string] | An array of examples of the server variable.
+
+This object MAY be extended with Specification Extensions.
+
+##### Server Variable Object Example
+
+#### Channels Object
+
+An object containing all the Channel Object definitions the Application MUST use during runtime.
+
+##### Patterned Fields
+
+Field Pattern | Type | Description
+---|:---:|---
+{channelId} | Channel Object | Reference Object | An identifier for the described channel. The channelId value is case-sensitive. Tools and libraries MAY use the channelId to uniquely identify a channel, therefore, it is RECOMMENDED to follow common programming naming conventions.
+
+##### Channels Object Example
+
+#### Channel Object
+
+Describes a shared communication channel.
+
+##### Fixed Fields
+
+Field Name | Type | Description
+---|:---:|---
+address | string | null | An optional string representation of this channel's address. The address is typically the "topic name", "routing key", "event type", or "path". When null or absent, it MUST be interpreted as unknown. This is useful when the address is generated dynamically at runtime or can't be known upfront. It MAY contain Channel Address Expressions. Query parameters and fragments SHALL NOT be used, instead use bindings to define them.
+messages | Messages Object | A map of the messages that will be sent to this channel by any application at any time. Every message sent to this channel MUST be valid against one, and only one, of the message objects defined in this map.
+title | string | A human-friendly title for the channel.
+summary | string | A short summary of the channel.
+description | string | An optional description of this channel. CommonMark syntax can be used for rich text representation.
+servers | [Reference Object] | An array of $ref pointers to the definition of the servers in which this channel is available. If the channel is located in the root Channels Object, it MUST point to a subset of server definitions located in the root Servers Object, and MUST NOT point to a subset of server definitions located in the Components Object or anywhere else. If the channel is located in the Components Object, it MAY point to a Server Objects in any location. If servers is absent or empty, this channel MUST be available on all the servers defined in the Servers Object. Please note the servers property value MUST be an array of Reference Objects and, therefore, MUST NOT contain an array of Server Objects. However, it is RECOMMENDED that parsers (or other software) dereference this property for a better development experience.
+parameters | Parameters Object | A map of the parameters included in the channel address. It MUST be present only when the address contains Channel Address Expressions.
+tags | Tags Object | A list of tags for logical grouping of channels.
+externalDocs | External Documentation Object | Reference Object | Additional external documentation for this channel.
+bindings | Channel Bindings Object | Reference Object | A map where the keys describe the name of the protocol and the values describe protocol-specific definitions for the channel.
+
+This object MAY be extended with Specification Extensions.
+
+##### Channel Object Example
+
+#### Messages Object
+
+Describes a map of messages included in a channel.
+
+##### Patterned Fields
+
+Field Pattern | Type | Description
+---|:---:|---
+{messageId} | Message Object | Reference Object | The key represents the message identifier. The messageId value is case-sensitive. Tools and libraries MAY use the messageId value to uniquely identify a message, therefore, it is RECOMMENDED to follow common programming naming conventions.
+
+##### Messages Object Example
+
+#### Operations Object
+
+Holds a dictionary with all the operations this application MUST implement.
+
+> If you're looking for a place to define operations that MAY or MAY NOT be implemented by the application, consider defining them in components/operations.
+
+##### Patterned Fields
+
+Field Pattern | Type | Description
+---|:---:|---
+{operationId} | Operation Object | Reference Object | The operation this application MUST implement. The field name (operationId) MUST be a string used to identify the operation in the document where it is defined, and its value is case-sensitive. Tools and libraries MAY use the operationId to uniquely identify an operation, therefore, it is RECOMMENDED to follow common programming naming conventions.
+
+##### Operations Object Example
+
+#### Operation Object
+
+Describes a specific operation.
+
+##### Fixed Fields
+
+Field Name | Type | Description
+---|:---:|---
+action | "send" | "receive" | Required. Use send when it's expected that the application will send a message to the given channel, and receive when the application should expect receiving messages from the given channel.
+channel | Reference Object | Required. A $ref pointer to the definition of the channel in which this operation is performed. If the operation is located in the root Operations Object, it MUST point to a channel definition located in the root Channels Object, and MUST NOT point to a channel definition located in the Components Object or anywhere else. If the operation is located in the Components Object, it MAY point to a Channel Object in any location. Please note the channel property value MUST be a Reference Object and, therefore, MUST NOT contain a Channel Object. However, it is RECOMMENDED that parsers (or other software) dereference this property for a better development experience.
+title | string | A human-friendly title for the operation.
+summary | string | A short summary of what the operation is about.
+description | string | A verbose explanation of the operation. CommonMark syntax can be used for rich text representation.
+security | [Security Scheme Object | Reference Object]| A declaration of which security schemes are associated with this operation. Only one of the security scheme objects MUST be satisfied to authorize an operation. In cases where Server Security also applies, it MUST also be satisfied.
+tags | Tags Object | A list of tags for logical grouping and categorization of operations.
+externalDocs | External Documentation Object | Reference Object | Additional external documentation for this operation.
+bindings | Operation Bindings Object | Reference Object | A map where the keys describe the name of the protocol and the values describe protocol-specific definitions for the operation.
+traits | [Operation Trait Object | Reference Object ] | A list of traits to apply to the operation object. Traits MUST be merged using traits merge mechanism. The resulting object MUST be a valid Operation Object.
+messages | [Reference Object] | A list of $ref pointers pointing to the supported Message Objects that can be processed by this operation. It MUST contain a subset of the messages defined in the channel referenced in this operation, and MUST NOT point to a subset of message definitions located in the Messages Object in the Components Object or anywhere else. Every message processed by this operation MUST be valid against one, and only one, of the message objects referenced in this list. Please note the messages property value MUST be a list of Reference Objects and, therefore, MUST NOT contain Message Objects. However, it is RECOMMENDED that parsers (or other software) dereference this property for a better development experience.
+reply | Operation Reply Object | Reference Object  | The definition of the reply in a request-reply operation.
+
+This object MAY be extended with Specification Extensions.
+
+##### Operation Object Example
+
+#### Operation Reply Object
+
+Describes the reply part that MAY be applied to an Operation Object. If an operation implements the request/reply pattern, the reply object represents the response message.
+
+##### Fixed Fields
+
+Field Name | Type | Description
+---|:---:|---
+address | Operation Reply Address Object | Reference Object | Definition of the address that implementations MUST use for the reply.
+channel | Reference Object | A $ref pointer to the definition of the channel in which this operation is performed. When address is specified, the address property of the channel referenced by this property MUST be either null or not defined. If the operation reply is located inside a root Operation Object, it MUST point to a channel definition located in the root Channels Object, and MUST NOT point to a channel definition located in the Components Object or anywhere else. If the operation reply is located inside an [Operation Object] in the Components Object or in the Replies Object in the Components Object, it MAY point to a Channel Object in any location. Please note the channel property value MUST be a Reference Object and, therefore, MUST NOT contain a Channel Object. However, it is RECOMMENDED that parsers (or other software) dereference this property for a better development experience.
+messages | [Reference Object] | A list of $ref pointers pointing to the supported Message Objects that can be processed by this operation as reply. It MUST contain a subset of the messages defined in the channel referenced in this operation reply, and MUST NOT point to a subset of message definitions located in the Components Object or anywhere else. Every message processed by this operation MUST be valid against one, and only one, of the message objects referenced in this list. Please note the messages property value MUST be a list of Reference Objects and, therefore, MUST NOT contain Message Objects. However, it is RECOMMENDED that parsers (or other software) dereference this property for a better development experience.
+
+This object MAY be extended with Specification Extensions.
+
+#### Operation Reply Address Object
+
+An object that specifies where an operation has to send the reply.
+
+For specifying and computing the location of a reply address, a runtime expression is used.
+
+##### Fixed Fields
+
+Field Name | Type | Description
+---|:---|---
+description | string | An optional description of the address. CommonMark syntax can be used for rich text representation.
+location | string | REQUIRED. A runtime expression that specifies the location of the reply address.
+
+This object MAY be extended with Specification Extensions.
+
+##### Examples
+
+#### Message Object
+
+Describes a message received on a given channel and operation.
+
+##### Fixed Fields
+
+Field Name | Type | Description
+---|:---:|---
+headers | Multi Format Schema Object | Schema Object | Reference Object | Schema definition of the application headers. Schema MUST be a map of key-value pairs. It MUST NOT define the protocol headers. If this is a Schema Object, then the schemaFormat will be assumed to be "application/vnd.aai.asyncapi+json;version=asyncapi" where the version is equal to the AsyncAPI Version String.
+payload | Multi Format Schema Object | Schema Object | Reference Object | Definition of the message payload. If this is a Schema Object, then the schemaFormat will be assumed to be "application/vnd.aai.asyncapi+json;version=asyncapi" where the version is equal to the AsyncAPI Version String.
+correlationId | Correlation ID Object | Reference Object | Definition of the correlation ID used for message tracing or matching.
+contentType | string | The content type to use when encoding/decoding a message's payload. The value MUST be a specific media type (e.g. application/json). When omitted, the value MUST be the one specified on the defaultContentType field.
+name | string | A machine-friendly name for the message.
+title | string | A human-friendly title for the message.
+summary | string | A short summary of what the message is about.
+description | string | A verbose explanation of the message. CommonMark syntax can be used for rich text representation.
+tags | Tags Object | A list of tags for logical grouping and categorization of messages.
+externalDocs | External Documentation Object | Reference Object | Additional external documentation for this message.
+bindings | Message Bindings Object | Reference Object | A map where the keys describe the name of the protocol and the values describe protocol-specific definitions for the message.
+examples | [Message Example Object] | List of examples.
+traits | [Message Trait Object | Reference Object] | A list of traits to apply to the message object. Traits MUST be merged using traits merge mechanism. The resulting object MUST be a valid Message Object.
+
+This object MAY be extended with Specification Extensions.
+
+##### Message Object Example
+
+Example using Avro to define the payload:
+
+#### Message Trait Object
+
+Describes a trait that MAY be applied to a Message Object. This object MAY contain any property from the Message Object, except payload and traits.
+
+If you're looking to apply traits to an operation, see the Operation Trait Object.
+
+##### Fixed Fields
+
+Field Name | Type | Description
+---|:---:|---
+headers | Multi Format Schema Object | Schema Object | Reference Object | Schema definition of the application headers. Schema MUST be a map of key-value pairs. It MUST NOT define the protocol headers. If this is a Schema Object, then the schemaFormat will be assumed to be "application/vnd.aai.asyncapi+json;version=asyncapi" where the version is equal to the AsyncAPI Version String.
+correlationId | Correlation ID Object | Reference Object | Definition of the correlation ID used for message tracing or matching.
+contentType | string | The content type to use when encoding/decoding a message's payload. The value MUST be a specific media type (e.g. application/json). When omitted, the value MUST be the one specified on the defaultContentType field.
+name | string | A machine-friendly name for the message.
+title | string | A human-friendly title for the message.
+summary | string | A short summary of what the message is about.
+description | string | A verbose explanation of the message. CommonMark syntax can be used for rich text representation.
+tags | Tags Object | A list of tags for logical grouping and categorization of messages.
+externalDocs | External Documentation Object | Reference Object | Additional external documentation for this message.
+bindings | Message Bindings Object | Reference Object | A map where the keys describe the name of the protocol and the values describe protocol-specific definitions for the message.
+examples | [Message Example Object] | List of examples.
+
+This object MAY be extended with Specification Extensions.
+
+##### Message Trait Object Example
+
+#### Components Object
+
+Holds a set of reusable objects for different aspects of the AsyncAPI specification.
+All objects defined within the components object will have no effect on the API unless they are explicitly referenced from properties outside the components object.
+
+##### Fixed Fields
+
+Field Name | Type | Description
+---|:---|---
+ schemas | Mapstring, [Multi Format Schema Object | Schema Object | Reference Object] | An object to hold reusable Schema Object. If this is a Schema Object, then the schemaFormat will be assumed to be "application/vnd.aai.asyncapi+json;version=asyncapi" where the version is equal to the AsyncAPI Version String.
+ servers | Mapstring, [Server Object | Reference Object] | An object to hold reusable Server Objects.
+ channels | Mapstring, [Channel Object | Reference Object] | An object to hold reusable Channel Objects.
+ operations | Mapstring, [Operation Object | Reference Object] | An object to hold reusable Operation Objects.
+ messages | Mapstring, [Message Object | Reference Object] | An object to hold reusable Message Objects.
+ securitySchemes| Mapstring, [Security Scheme Object | Reference Object] | An object to hold reusable Security Scheme Objects.
+ serverVariables | Mapstring, [Server Variable Object | Reference Object] | An object to hold reusable Server Variable Objects.
+ parameters | Mapstring, [Parameter Object | Reference Object] | An object to hold reusable Parameter Objects.
+ correlationIds | Mapstring, [Correlation ID Object | Reference Object] | An object to hold reusable Correlation ID Objects.
+replies | Mapstring, [Operation Reply Object | Reference Object] | An object to hold reusable Operation Reply Objects.
+ replyAddresses | Mapstring, [Operation Reply Address Object | Reference Object] | An object to hold reusable Operation Reply Address Objects.
+ externalDocs | Mapstring, [External Documentation Object | Reference Object] | An object to hold reusable External Documentation Objects.
+ tags | Mapstring, [Tag Object | Reference Object] | An object to hold reusable Tag Objects.
+ operationTraits | Mapstring, [Operation Trait Object | Reference Object]  | An object to hold reusable Operation Trait Objects.
+ messageTraits | Mapstring, [Message Trait Object | Reference Object]  | An object to hold reusable Message Trait Objects.
+ serverBindings | Mapstring, [Server Bindings Object | Reference Object]  | An object to hold reusable Server Bindings Objects.
+ channelBindings | Mapstring, [Channel Bindings Object | Reference Object]  | An object to hold reusable Channel Bindings Objects.
+ operationBindings | Mapstring, [Operation Bindings Object | Reference Object]  | An object to hold reusable Operation Bindings Objects.
+ messageBindings | Mapstring, [Message Bindings Object | Reference Object]  | An object to hold reusable Message Bindings Objects.
+
+This object MAY be extended with Specification Extensions.
+
+All the fixed fields declared above are objects that MUST use keys that match the regular expression: ^[a-zA-Z0-9\.\-_]+$.
+
+Field Name Examples:
+
+##### Components Object Example
+
+#### Reference Object
+
+A simple object to allow referencing other components in the specification, internally and externally.
+
+The Reference Object is defined by JSON Reference and follows the same structure, behavior and rules. A JSON Reference SHALL only be used to refer to a schema that is formatted in either JSON or YAML. In the case of a YAML-formatted Schema, the JSON Reference SHALL be applied to the JSON representation of that schema. The JSON representation SHALL be made by applying the conversion described here.
+
+For this specification, reference resolution is done as defined by the JSON Reference specification and not by the JSON Schema specification.
+
+##### Fixed Fields
+Field Name | Type | Description
+---|:---:|---
+$ref | string | REQUIRED. The reference string.
+
+This object cannot be extended with additional properties and any properties added SHALL be ignored.
+
+##### Reference Object Example
+
+#### Multi Format Schema Object
+
+The Multi Format Schema Object represents a schema definition. It differs from the Schema Object in that it supports multiple schema formats or languages (e.g., JSON Schema, Avro, etc.).
+
+##### Fixed Fields
+
+Field Name | Type | Description
+---|:---:|---
+schemaFormat | string | Required. A string containing the name of the schema format that is used to define the information. If schemaFormat is missing, it MUST default to application/vnd.aai.asyncapi+json;version={{asyncapi}} where {{asyncapi}} matches the AsyncAPI Version String. In such a case, this would make the Multi Format Schema Object equivalent to the Schema Object. When using Reference Object within the schema, the schemaFormat of the resource being referenced MUST match the schemaFormat of the schema that contains the initial reference. For example, if you reference Avro schema, then schemaFormat of referencing resource and the resource being reference MUST match.   Check out the supported schema formats table for more information. Custom values are allowed but their implementation is OPTIONAL. A custom value MUST NOT refer to one of the schema formats listed in the table.  When using Reference Objects within the schema, the schemaFormat of the referenced resource MUST match the schemaFormat of the schema containing the reference.
+schema | any | Required. Definition of the message payload. It can be of any type but defaults to Schema Object. It MUST match the schema format defined in schemaFormat, including the encoding type. E.g., Avro should be inlined as either a YAML or JSON object instead of as a string to be parsed as YAML or JSON. Non-JSON-based schemas (e.g., Protobuf or XSD) MUST be inlined as a string.
+
+This object MAY be extended with Specification Extensions.
+
+##### Schema formats table
+
+The following table contains a set of values that every implementation MUST support.
+
+Name | Allowed values | Notes
+---|:---:|---
+AsyncAPI 3.0.0 Schema Object | application/vnd.aai.asyncapi;version=3.0.0, application/vnd.aai.asyncapi+json;version=3.0.0, application/vnd.aai.asyncapi+yaml;version=3.0.0 | This is the default when a schemaFormat is not provided.
+JSON Schema Draft 07 | application/schema+json;version=draft-07, application/schema+yaml;version=draft-07 |
+
+The following table contains a set of values that every implementation is RECOMMENDED to support.
+
+Name | Allowed values | Notes
+---|:---:|---
+Avro 1.9.0 schema | application/vnd.apache.avro;version=1.9.0, application/vnd.apache.avro+json;version=1.9.0, application/vnd.apache.avro+yaml;version=1.9.0 |
+OpenAPI 3.0.0 Schema Object | application/vnd.oai.openapi;version=3.0.0, application/vnd.oai.openapi+json;version=3.0.0, application/vnd.oai.openapi+yaml;version=3.0.0 |
+RAML 1.0 data type | application/raml+yaml;version=1.0 |
+Protocol Buffers | application/vnd.google.protobuf;version=2, application/vnd.google.protobuf;version=3 |
+
+#### Schema Object
+
+The Schema Object allows the definition of input and output data types.
+These types can be objects, but also primitives and arrays. This object is a superset of the JSON Schema Specification Draft 07. The empty schema (which allows any instance to validate) MAY be represented by the boolean value true and a schema which allows no instance to validate MAY be represented by the boolean value false.
+
+Further information about the properties can be found in JSON Schema Core and JSON Schema Validation.
+Unless stated otherwise, the property definitions follow the JSON Schema specification as referenced here.
+
+##### Properties
+
+The AsyncAPI Schema Object is a JSON Schema vocabulary which extends JSON Schema Core and Validation vocabularies. As such, any keyword available for those vocabularies is by definition available in AsyncAPI, and will work the exact same way, including but not limited to:
+
+- title
+- type
+- required
+- multipleOf
+- maximum
+- exclusiveMaximum
+- minimum
+- exclusiveMinimum
+- maxLength
+- minLength
+- pattern (This string SHOULD be a valid regular expression, according to the ECMA 262 regular expression dialect)
+- maxItems
+- minItems
+- uniqueItems
+- maxProperties
+- minProperties
+- enum
+- const
+- examples
+- if / then / else
+- readOnly
+- writeOnly
+- properties
+- patternProperties
+- additionalProperties
+- additionalItems
+- items
+- propertyNames
+- contains
+- allOf
+- oneOf
+- anyOf
+- not
+
+The following properties are taken from the JSON Schema definition but their definitions were adjusted to the AsyncAPI Specification.
+
+- description - CommonMark syntax can be used for rich text representation.
+- format - See Data Type Formats for further details. While relying on JSON Schema's defined formats, the AsyncAPI Specification offers a few additional predefined formats.
+- default - Use it to specify that property has a predefined value if no other value is present. Unlike JSON Schema, the value MUST conform to the defined type for the Schema Object defined at the same level. For example, of type is string, then default can be "foo" but cannot be 1.
+
+Alternatively, any time a Schema Object can be used, a Reference Object can be used in its place. This allows referencing definitions in place of defining them inline. It is appropriate to clarify that the $ref keyword MUST follow the behavior described by Reference Object instead of the one in JSON Schema definition.
+
+In addition to the JSON Schema fields, the following AsyncAPI vocabulary fields MAY be used for further schema documentation:
+
+##### Fixed Fields
+Field Name | Type | Description
+---|:---:|---
+discriminator | string | Adds support for polymorphism. The discriminator is the schema property name that is used to differentiate between other schema that inherit this schema. The property name used MUST be defined at this schema and it MUST be in the required property list. When used, the value MUST be the name of this schema or any schema that inherits it. See Composition and Inheritance for more details.
+externalDocs | External Documentation Object | Reference Object | Additional external documentation for this schema.
+ deprecated | boolean | Specifies that a schema is deprecated and SHOULD be transitioned out of usage. Default value is false.
+
+This object MAY be extended with Specification Extensions.
+
+###### Composition and Inheritance (Polymorphism)
+
+The AsyncAPI Specification allows combining and extending model definitions using the allOf property of JSON Schema, in effect offering model composition.
+allOf takes in an array of object definitions that are validated *independently* but together compose a single object.
+
+While composition offers model extensibility, it does not imply a hierarchy between the models.
+To support polymorphism, AsyncAPI Specification adds the support of the discriminator field.
+When used, the discriminator will be the name of the property used to decide which schema definition is used to validate the structure of the model.
+As such, the discriminator field MUST be a required field.
+There are two ways to define the value of a discriminator for an inheriting instance.
+
+- Use the schema's name.
+- Override the schema's name by overriding the property with a new value. If exists, this takes precedence over the schema's name.
+
+As such, inline schema definitions, which do not have a given id, *cannot* be used in polymorphism.
+
+##### Schema Object Examples
+
+###### Primitive Sample
+
+###### Simple Model
+
+###### Model with Map/Dictionary Properties
+
+For a simple string to string mapping:
+
+For a string to model mapping:
+
+###### Model with Example
+
+###### Model with Boolean Schemas
+
+###### Models with Composition
+
+###### Models with Polymorphism Support
+
+#### Security Scheme Object
+
+Defines a security scheme that can be used by the operations. Supported schemes are:
+
+* User/Password.
+* API key (either as user or as password).
+* X.509 certificate.
+* End-to-end encryption (either symmetric or asymmetric).
+* HTTP authentication.
+* HTTP API key.
+* OAuth2's common flows (Implicit, Resource Owner Protected Credentials, Client Credentials and Authorization Code) as defined in RFC6749.
+* OpenID Connect Discovery.
+* SASL (Simple Authentication and Security Layer) as defined in RFC4422.
+
+##### Fixed Fields
+Field Name | Type | Applies To | Description
+---|:---:|---|---
+type | string | Any | REQUIRED. The type of the security scheme. Valid values are "userPassword", "apiKey", "X509", "symmetricEncryption", "asymmetricEncryption", "httpApiKey", "http", "oauth2", "openIdConnect", "plain", "scramSha256", "scramSha512", and "gssapi".
+description | string | Any | A short description for security scheme. CommonMark syntax MAY be used for rich text representation.
+name | string | httpApiKey | REQUIRED. The name of the header, query or cookie parameter to be used.
+in | string | apiKey | httpApiKey | REQUIRED. The location of the API key. Valid values are "user" and "password" for apiKey and "query", "header" or "cookie" for httpApiKey.
+scheme | string | http | REQUIRED. The name of the HTTP Authorization scheme to be used in the Authorization header as defined in RFC7235.
+bearerFormat | string | http ("bearer") | A hint to the client to identify how the bearer token is formatted.  Bearer tokens are usually generated by an authorization server, so this information is primarily for documentation purposes.
+flows | OAuth Flows Object | oauth2 | REQUIRED. An object containing configuration information for the flow types supported.
+openIdConnectUrl | string | openIdConnect | REQUIRED. OpenId Connect URL to discover OAuth2 configuration values. This MUST be in the form of an absolute URL.
+scopes | [string] | oauth2 | openIdConnect | List of the needed scope names. An empty array means no scopes are needed.
+
+This object MAY be extended with Specification Extensions.
+
+##### Security Scheme Object Example
+
+###### User/Password Authentication Sample
+
+###### API Key Authentication Sample
+
+###### X.509 Authentication Sample
+
+###### End-to-end Encryption Authentication Sample
+
+###### Basic Authentication Sample
+
+###### API Key Sample
+
+###### JWT Bearer Sample
+
+###### Implicit OAuth2 Sample
+
+###### SASL Sample
+
+### Correlation ID Object
+
+An object that specifies an identifier at design time that can used for message tracing and correlation.
+
+For specifying and computing the location of a Correlation ID, a runtime expression is used.
+
+##### Fixed Fields
+
+Field Name | Type | Description
+---|:---|---
+description | string | An optional description of the identifier. CommonMark syntax can be used for rich text representation.
+location | string | REQUIRED. A runtime expression that specifies the location of the correlation ID.
+
+This object MAY be extended with Specification Extensions.
+
+##### Examples
+
+### Runtime Expression
+
+A runtime expression allows values to be defined based on information that will be available within the message.
+This mechanism is used by Correlation ID Object and Operation Reply Address Object.
+
+The runtime expression is defined by the following ABNF syntax:
+
+The table below provides examples of runtime expressions and examples of their use in a value:
+
+##### Examples
+
+Source Location | Example expression  | Notes
+---|:---|:---|
+Message Header Property | $message.header#/MQMD/CorrelId | Correlation ID is set using the CorrelId value from the MQMD header.
+Message Payload Property | $message.payload#/messageId | Correlation ID is set using the messageId value from the message payload.
+
+Runtime expressions preserve the type of the referenced value.
+
+### Traits Merge Mechanism
+
+Traits MUST be merged with the target object using the JSON Merge Patch algorithm in the same order they are defined. A property on a trait MUST NOT override the same property on the target object.
+
+#### Example
+
+An object like the following:
+
+Would look like the following after applying traits:
+
+### Specification Extensions
+
+While the AsyncAPI Specification tries to accommodate most use cases, additional data can be added to extend the specification at certain points.
+
+The extensions properties are implemented as patterned fields that are always prefixed by "x-".
+
+Field Pattern | Type | Description
+---|:---:|---
+^x-[\w\d\-\_]+$ | Any | Allows extensions to the AsyncAPI Schema. The field name MUST begin with x-, for example, x-internal-id. The value can be null, a primitive, an array or an object. Can have any valid JSON format value.
+
+The extensions may or may not be supported by the available tooling, but those may be extended as well to add requested support (if tools are internal or open-sourced).

@@ -1,0 +1,50 @@
+{
+  "name": "asyncapi-security-check",
+  "version": "1.0.0",
+  "description": "Read an AsyncAPI 3.0 or 2.6 document (JSON or YAML) and report what makes an event-driven integration unsafe or fragile: servers with no security or a plain protocol where a secure one exists, credentials in the query, messages without a payload schema, request/reply without a correlation id, operations without a channel, unused channels and unresolved references. Each finding has its JSON pointer and line and quotes the specification or the protocol page. Fetches nothing, no dependencies.",
+  "type": "module",
+  "main": "src/index.js",
+  "exports": {
+    ".": "./src/index.js"
+  },
+  "bin": {
+    "asyncapi-security-check": "bin/asyncapi-security-check.js"
+  },
+  "files": [
+    "bin",
+    "src",
+    "docs",
+    "examples",
+    "research",
+    "README.md",
+    "LICENSE"
+  ],
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "test": "node --test \"test/*.test.js\"",
+    "test:coverage": "node --test --experimental-test-coverage \"test/*.test.js\"",
+    "check": "node tools/check.mjs",
+    "example": "node tools/example.mjs"
+  },
+  "keywords": [
+    "asyncapi",
+    "event-driven",
+    "messaging",
+    "kafka",
+    "mqtt",
+    "amqp",
+    "websocket",
+    "security",
+    "linter",
+    "cli"
+  ],
+  "author": "INNERLUXES <info@innerluxes.dev>",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/INNERLUXES/asyncapi-security-check.git"
+  },
+  "homepage": "https://innerluxes.dev/application/integration"
+}

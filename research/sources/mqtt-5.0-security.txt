@@ -1,0 +1,11 @@
+Source: https://docs.oasis-open.org/mqtt/mqtt/v5.0/os/mqtt-v5.0-os.html
+
+5.4.1 Authentication of Clients by the Server The CONNECT packet contains User Name and Password fields. Implementations can choose how to make use of the content of these fields. They may provide their own authentication mechanism, use an external authentication system such as LDAP [RFC4511] or OAuth [RFC6749] tokens, or leverage operating system authentication mechanisms. MQTT v5.0 provides an enhanced authentication mechanism as described in section 4.12 . Using this requires support for it in both the Client and Server. Implementations passing authentication data in clear text, obfuscating such data elements or requiring no authentication data should be aware this can give rise to Man-in-the-Middle and replay attacks. Section 5.4.5 introduces approaches to ensure data privacy. A Virtual Private Network (VPN) between the Clients and Servers can provide confidence that data is only being received from authorized Clients. Where TLS [RFC5246] is used, TLS Certificates sent from the Client can be used by the Server to authenticate the Client. An implementation might allow for authentication where the credentials are sent in an Application Message from the Client to the Server.
+
+5.4.5 Privacy of Application Messages and MQTT Control Packets TLS [RFC5246] can provide encryption of data sent over the network. There are valid TLS cipher suites that include a NULL encryption algorithm that does not encrypt data. To ensure privacy Clients and Servers should avoid these cipher suites.
+
+5.4.12.1 Clear communication profile When using the clear communication profile, the MQTT protocol runs over an open network with no additional secure communication mechanisms in place.
+
+5.4.12.3 Secured transport profile When using the secured transport profile, the MQTT protocol runs over a physical or virtual network and using TLS [RFC5246] which provides authentication, integrity and privacy.
+
+It is strongly recommended that Server implementations that offer TLS [RFC5246] should use TCP port 8883 (IANA service name: secure-mqtt).

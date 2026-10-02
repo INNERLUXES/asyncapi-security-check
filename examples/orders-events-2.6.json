@@ -1,0 +1,46 @@
+{
+  "asyncapi": "2.6.0",
+  "info": {
+    "title": "Orders Events",
+    "version": "1.0.0",
+    "description": "The 2.6 form of the order events. Made up for this tool, and wrong on purpose."
+  },
+  "servers": {
+    "broker": {
+      "url": "mqtt://broker.orders.example.test:1883",
+      "protocol": "mqtt",
+      "description": "Message broker of the order service."
+    },
+    "analytics": {
+      "url": "kafka.orders.example.test:9093",
+      "protocol": "kafka-secure",
+      "description": "Event stream for the analytics team.",
+      "security": [{ "analyticsLogin": [] }, { "missingScheme": [] }]
+    }
+  },
+  "channels": {
+    "orders/placed": {
+      "subscribe": {
+        "summary": "Orders that were placed.",
+        "message": { "$ref": "#/components/messages/OrderPlaced" }
+      }
+    },
+    "orders/audit": {
+      "description": "Nothing is published or consumed here yet."
+    }
+  },
+  "components": {
+    "securitySchemes": {
+      "analyticsLogin": { "type": "scramSha512" },
+      "dashboardLogin": { "type": "userPassword" }
+    },
+    "messages": {
+      "OrderPlaced": {
+        "payload": {
+          "type": "object",
+          "properties": { "orderId": { "type": "string" } }
+        }
+      }
+    }
+  }
+}

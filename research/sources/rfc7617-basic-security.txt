@@ -1,0 +1,72 @@
+Source: https://www.rfc-editor.org/rfc/rfc7617.txt
+
+4.  Security Considerations
+
+   The Basic authentication scheme is not a secure method of user
+   authentication, nor does it in any way protect the entity, which is
+   transmitted in cleartext across the physical network used as the
+   carrier.  HTTP does not prevent the addition of enhancements (such as
+   schemes to use one-time passwords) to Basic authentication.
+
+   The most serious flaw of Basic authentication is that it results in
+   the cleartext transmission of the user's password over the physical
+   network.  Many other authentication schemes address this problem.
+
+   Because Basic authentication involves the cleartext transmission of
+   passwords, it SHOULD NOT be used (without enhancements such as HTTPS
+   [RFC2818]) to protect sensitive or valuable information.
+
+   A common use of Basic authentication is for identification purposes
+   -- requiring the user to provide a user-id and password as a means of
+   identification, for example, for purposes of gathering accurate usage
+   statistics on a server.  When used in this way it is tempting to
+   think that there is no danger in its use if illicit access to the
+   protected documents is not a major concern.  This is only correct if
+   the server issues both user-id and password to the users and, in
+   particular, does not allow the user to choose his or her own
+   password.  The danger arises because naive users frequently reuse a
+   single password to avoid the task of maintaining multiple passwords.
+
+   If a server permits users to select their own passwords, then the
+   threat is not only unauthorized access to documents on the server but
+   also unauthorized access to any other resources on other systems that
+   the user protects with the same password.  Furthermore, in the
+   server's password database, many of the passwords may also be users'
+   passwords for other sites.  The owner or administrator of such a
+   system could therefore expose all users of the system to the risk of
+
+   unauthorized access to all those other sites if this information is
+   not maintained in a secure fashion.  This raises both security and
+   privacy concerns ([RFC6973]).  If the same user-id and password
+   combination is in use to access other accounts, such as an email or
+   health portal account, personal information could be exposed.
+
+   Basic authentication is also vulnerable to spoofing by counterfeit
+   servers.  If a user can be led to believe that she is connecting to a
+   host containing information protected by Basic authentication when,
+   in fact, she is connecting to a hostile server or gateway, then the
+   attacker can request a password, store it for later use, and feign an
+   error.  Server implementers ought to guard against this sort of
+   counterfeiting; in particular, software components that can take over
+   control over the message framing on an existing connection need to be
+   used carefully or not at all (for instance: NPH ("Non-Parsed Header")
+   scripts as described in Section 5 of [RFC3875]).
+
+   Servers and proxies implementing Basic authentication need to store
+   user passwords in some form in order to authenticate a request.
+   These passwords ought to be stored in such a way that a leak of the
+   password data doesn't make them trivially recoverable.  This is
+   especially important when users are allowed to set their own
+   passwords, since users are known to choose weak passwords and to
+   reuse them across authentication realms.  While a full discussion of
+   good password hashing techniques is beyond the scope of this
+   document, server operators ought to make an effort to minimize risks
+   to their users in the event of a password data leak.  For example,
+   servers ought to avoid storing user passwords in plaintext or as
+   unsalted digests.  For more discussion about modern password hashing
+   techniques, see the "Password Hashing Competition"
+   (<https://password-hashing.net>).
+
+   The use of the UTF-8 character encoding scheme and of normalization
+   introduces additional security considerations; see Section 10 of
+   [RFC3629] and Section 6 of [RFC5198] for more information.

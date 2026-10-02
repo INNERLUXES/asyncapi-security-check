@@ -1,0 +1,114 @@
+asyncapi: 3.0.0
+info:
+  title: Orders Events
+  version: 1.0.0
+  description: 'Events that the order service publishes, and the status request that the dashboard sends to it. Made up for this tool, and wrong on purpose.'
+servers:
+  broker:
+    host: broker.orders.example.test:5672
+    protocol: amqp
+    description: Message broker of the order service.
+  stream:
+    host: stream.orders.example.test
+    protocol: wss
+    description: Live feed for the dashboard.
+    security:
+      - $ref: '#/components/securitySchemes/feedKey'
+  analytics:
+    host: kafka.orders.example.test:9093
+    protocol: kafka-secure
+    description: Event stream for the analytics team.
+    security:
+      - $ref: '#/components/securitySchemes/analyticsLogin'
+channels:
+  orderPlaced:
+    address: orders.placed
+    messages:
+      orderPlaced:
+        $ref: '#/components/messages/OrderPlaced'
+  orderCancelled:
+    address: orders.cancelled
+    messages:
+      orderCancelled:
+        $ref: '#/components/messages/OrderCancelled'
+  orderStatusRequest:
+    address: orders.status.request
+    messages:
+      statusRequest:
+        $ref: '#/components/messages/StatusRequest'
+  orderStatusReply:
+    address: orders.status.reply
+    messages:
+      statusReply:
+        $ref: '#/components/messages/StatusReply'
+  auditTrail:
+    address: orders.audit
+    messages:
+      orderPlaced:
+        $ref: '#/components/messages/OrderPlaced'
+operations:
+  publishOrderPlaced:
+    action: send
+    channel:
+      $ref: '#/channels/orderPlaced'
+    summary: Tell the other services that an order was placed.
+  publishOrderCancelled:
+    action: send
+    channel:
+      $ref: '#/channels/orderCancelled'
+    summary: Tell the other services that an order was cancelled.
+  askOrderStatus:
+    action: send
+    channel:
+      $ref: '#/channels/orderStatusRequest'
+    summary: Ask the order service for the status of an order and wait for the answer.
+    messages:
+      - $ref: '#/channels/orderStatusRequest/messages/statusRequest'
+    reply:
+      channel:
+        $ref: '#/channels/orderStatusReply'
+      messages:
+        - $ref: '#/channels/orderStatusReply/messages/statusReply'
+components:
+  securitySchemes:
+    feedKey:
+      type: httpApiKey
+      name: token
+      in: query
+      description: Key of the dashboard.
+    analyticsLogin:
+      type: scramSha512
+      description: Login of the analytics consumers.
+  messages:
+    OrderPlaced:
+      summary: An order was placed.
+      payload:
+        type: object
+        properties:
+          orderId:
+            type: string
+          total:
+            type: number
+    OrderCancelled:
+      name: OrderCancelled
+    StatusRequest:
+      summary: A request for the status of one order.
+      payload:
+        type: object
+        properties:
+          orderId:
+            type: string
+        required:
+          - orderId
+    StatusReply:
+      summary: The status of one order.
+      payload:
+        type: object
+        properties:
+          orderId:
+            type: string
+          status:
+            type: string
+        required:
+          - orderId
+          - status
