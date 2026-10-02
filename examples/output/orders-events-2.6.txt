@@ -1,0 +1,65 @@
+asyncapi-security-check: examples/orders-events-2.6.json
+AsyncAPI 2.6.0, json, "Orders Events": 2 servers, 2 channels, 1 operation, 1 message, 2 security schemes
+areas:
+  Servers                   fail   server-no-security x1, server-plain-protocol x1
+  Security schemes          fail   security-scheme-undefined x1
+  Messages                  info   payload-no-required x1
+  Operations and channels   warn   channel-unused x1
+  References                pass   no finding
+  Documentation             info   message-no-description x1, operation-no-id x1, message-no-id x1
+findings: 3 error, 1 warning, 4 info
+
+Servers (2 findings)
+
+  ERROR    server-no-security  #/servers/broker  line 9
+           The server "broker" declares no security scheme, so the document says nothing about how a client proves who it is when it connects.
+           basis: "A declaration of which security mechanisms can be used with this server." (Server Object, security, https://raw.githubusercontent.com/asyncapi/spec/v2.6.0/spec/asyncapi.md)
+           fix: Add the scheme (or the alternatives) that a client has to satisfy to connect, under security of the server.
+
+  ERROR    server-plain-protocol  #/servers/broker/protocol  line 11
+           The server "broker" uses the plain protocol mqtt, and the specification lists secure-mqtt for the same protocol. Messages, and the credentials that go with them, can be read and changed on the way.
+           basis: "Supported protocol include, but are not limited to: amqp, amqps, http, https, ibmmq, jms, kafka, kafka-secure, anypointmq, mqtt, secure-mqtt, solace, stomp, stomps, ws, wss, mercure, googlepubsub, pulsar." (Server Object, protocol, version 2.6.0, https://raw.githubusercontent.com/asyncapi/spec/v2.6.0/spec/asyncapi.md)
+           basis: "When using the clear communication profile, the MQTT protocol runs over an open network with no additional secure communication mechanisms in place." (5.4.12.1 Clear communication profile, https://docs.oasis-open.org/mqtt/mqtt/v5.0/os/mqtt-v5.0-os.html)
+           fix: Use secure-mqtt (TLS) for this server, and keep mqtt for a broker on the local machine only.
+
+Security schemes (1 finding)
+
+  ERROR    security-scheme-undefined  #/servers/analytics/security/1/missingScheme  line 18
+           The security requirement names the scheme "missingScheme", and components.securitySchemes does not define it, so the requirement protects nothing.
+           basis: "Each name MUST correspond to a security scheme which is declared in the Security Schemes under the Components Object." (Security Requirement Object, https://raw.githubusercontent.com/asyncapi/spec/v2.6.0/spec/asyncapi.md)
+           fix: Define the scheme under components.securitySchemes, or remove the requirement.
+
+Messages (1 finding)
+
+  INFO     payload-no-required  #/components/messages/OrderPlaced/payload  line 39
+           The payload schema of the message "OrderPlaced" lists 1 property and no required list, so a message with none of them is valid.
+           basis: "The AsyncAPI Schema Object is a JSON Schema vocabulary which extends JSON Schema Core and Validation vocabularies." (Schema Object, https://raw.githubusercontent.com/asyncapi/spec/v2.6.0/spec/asyncapi.md)
+           fix: List the properties that every message has under required.
+
+Operations and channels (1 finding)
+
+  WARNING  channel-unused  #/channels/orders~1audit  line 28
+           The channel "orders/audit" has neither a publish nor a subscribe operation, so nothing says who sends to it or receives from it.
+           basis: "Describes the operations available on a single channel." (Channel Item Object, https://raw.githubusercontent.com/asyncapi/spec/v2.6.0/spec/asyncapi.md)
+           fix: Add the operation that the application performs on the channel, or remove the channel.
+
+Documentation (3 findings)
+
+  INFO     message-no-description  #/components/messages/OrderPlaced  line 38
+           The message "OrderPlaced" has neither a description nor a summary.
+           basis: "A verbose explanation of the message." (Message Object, description, https://raw.githubusercontent.com/asyncapi/spec/v2.6.0/spec/asyncapi.md)
+           fix: Say in a sentence what the message means and when it is sent.
+
+  INFO     operation-no-id  #/channels/orders~1placed/subscribe  line 23
+           The subscribe operation of the channel "orders/placed" has no operationId, so tools and people have no stable name for it.
+           basis: "Unique string used to identify the operation." (Operation Object, operationId, https://raw.githubusercontent.com/asyncapi/spec/v2.6.0/spec/asyncapi.md)
+           fix: Add a unique operationId.
+
+  INFO     message-no-id  #/components/messages/OrderPlaced  line 38
+           The message "OrderPlaced" has no messageId, so tools and people have no stable name for it.
+           basis: "Unique string used to identify the message." (Message Object, messageId, https://raw.githubusercontent.com/asyncapi/spec/v2.6.0/spec/asyncapi.md)
+           fix: Add a unique messageId.
+
+note: AsyncAPI 2.6 has no reply object, so the request/reply correlation check was not run
+
+GATE: FAIL - 3 errors

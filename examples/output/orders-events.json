@@ -1,0 +1,259 @@
+{
+  "tool": "asyncapi-security-check",
+  "version": "1.0.0",
+  "document": {
+    "path": "examples/orders-events.yaml",
+    "asyncapi": "3.0.0",
+    "format": "yaml",
+    "title": "Orders Events",
+    "servers": 3,
+    "channels": 5,
+    "operations": 3,
+    "messages": 4,
+    "securitySchemes": 2
+  },
+  "areas": [
+    {
+      "id": "servers",
+      "title": "Servers",
+      "result": "fail",
+      "detail": "server-no-security x1, server-plain-protocol x1",
+      "findings": 2
+    },
+    {
+      "id": "security",
+      "title": "Security schemes",
+      "result": "warn",
+      "detail": "apikey-in-query x1",
+      "findings": 1
+    },
+    {
+      "id": "messages",
+      "title": "Messages",
+      "result": "warn",
+      "detail": "message-no-payload x1, payload-no-required x1",
+      "findings": 2
+    },
+    {
+      "id": "operations",
+      "title": "Operations and channels",
+      "result": "warn",
+      "detail": "reply-no-correlation-id x2, channel-unused x1",
+      "findings": 3
+    },
+    {
+      "id": "references",
+      "title": "References",
+      "result": "pass",
+      "detail": "no finding",
+      "findings": 0
+    },
+    {
+      "id": "documentation",
+      "title": "Documentation",
+      "result": "info",
+      "detail": "message-no-description x1",
+      "findings": 1
+    }
+  ],
+  "findings": [
+    {
+      "id": "server-no-security",
+      "severity": "error",
+      "area": "servers",
+      "pointer": "#/servers/broker",
+      "line": 7,
+      "subject": "broker",
+      "message": "The server \"broker\" declares no security scheme, so the document says nothing about how a client proves who it is when it connects.",
+      "fix": "Add the scheme (or the alternatives) that a client has to satisfy to connect, under security of the server.",
+      "basis": [
+        {
+          "text": "A declaration of which security schemes can be used with this server.",
+          "section": "Server Object, security",
+          "source": "https://raw.githubusercontent.com/asyncapi/spec/v3.0.0/spec/asyncapi.md"
+        }
+      ],
+      "source": "https://raw.githubusercontent.com/asyncapi/spec/v3.0.0/spec/asyncapi.md"
+    },
+    {
+      "id": "server-plain-protocol",
+      "severity": "error",
+      "area": "servers",
+      "pointer": "#/servers/broker/protocol",
+      "line": 9,
+      "subject": "broker",
+      "message": "The server \"broker\" uses the plain protocol amqp, and the specification lists amqps for the same protocol. Messages, and the credentials that go with them, can be read and changed on the way.",
+      "fix": "Use amqps (TLS) for this server, and keep amqp for a broker on the local machine only.",
+      "basis": [
+        {
+          "text": "Supported protocol include, but are not limited to: amqp, amqps, http, https, ibmmq, jms, kafka, kafka-secure, anypointmq, mqtt, secure-mqtt, solace, stomp, stomps, ws, wss, mercure, googlepubsub, pulsar.",
+          "section": "Server Object, protocol, version 2.6.0",
+          "source": "https://raw.githubusercontent.com/asyncapi/spec/v2.6.0/spec/asyncapi.md"
+        }
+      ],
+      "source": "https://raw.githubusercontent.com/asyncapi/spec/v2.6.0/spec/asyncapi.md"
+    },
+    {
+      "id": "apikey-in-query",
+      "severity": "warning",
+      "area": "security",
+      "pointer": "#/components/securitySchemes/feedKey/in",
+      "line": 77,
+      "subject": "feedKey",
+      "message": "The security scheme \"feedKey\" sends an API key in the query. A key in a URL is shown and logged in many places.",
+      "fix": "Send the key in a header (in: header) instead.",
+      "basis": [
+        {
+          "text": "The location of the API key. Valid values are \"user\" and \"password\" for apiKey and \"query\", \"header\" or \"cookie\" for httpApiKey.",
+          "section": "Security Scheme Object, in",
+          "source": "https://raw.githubusercontent.com/asyncapi/spec/v3.0.0/spec/asyncapi.md"
+        },
+        {
+          "text": "It is therefore unwise to include information within a URI that is sensitive, personally identifiable, or a risk to disclose.",
+          "section": "17.9 Disclosure of Sensitive Information in URIs",
+          "source": "https://www.rfc-editor.org/rfc/rfc9110.txt"
+        }
+      ],
+      "source": "https://raw.githubusercontent.com/asyncapi/spec/v3.0.0/spec/asyncapi.md"
+    },
+    {
+      "id": "message-no-payload",
+      "severity": "warning",
+      "area": "messages",
+      "pointer": "#/components/messages/OrderCancelled",
+      "line": 92,
+      "subject": "OrderCancelled",
+      "message": "The message \"OrderCancelled\" has no payload schema, so a receiver cannot validate what it gets and a sender cannot tell what it may send.",
+      "fix": "Add a payload with a schema (type, properties and required).",
+      "basis": [
+        {
+          "text": "Definition of the message payload.",
+          "section": "Message Object, payload",
+          "source": "https://raw.githubusercontent.com/asyncapi/spec/v3.0.0/spec/asyncapi.md"
+        },
+        {
+          "text": "A message MAY contain a payload and MAY also contain headers.",
+          "section": "Definitions, Message",
+          "source": "https://raw.githubusercontent.com/asyncapi/spec/v3.0.0/spec/asyncapi.md"
+        }
+      ],
+      "source": "https://raw.githubusercontent.com/asyncapi/spec/v3.0.0/spec/asyncapi.md"
+    },
+    {
+      "id": "reply-no-correlation-id",
+      "severity": "warning",
+      "area": "operations",
+      "pointer": "#/components/messages/StatusReply",
+      "line": 103,
+      "subject": "StatusReply",
+      "message": "The message \"StatusReply\" is a reply message of the request/reply operation \"askOrderStatus\" and has no correlationId, so the reply cannot be matched to its request.",
+      "fix": "Add a correlationId with a location (for example $message.header#/correlationId) to the request and to the reply message.",
+      "basis": [
+        {
+          "text": "Definition of the correlation ID used for message tracing or matching.",
+          "section": "Message Object, correlationId",
+          "source": "https://raw.githubusercontent.com/asyncapi/spec/v3.0.0/spec/asyncapi.md"
+        },
+        {
+          "text": "If an operation implements the request/reply pattern, the reply object represents the response message.",
+          "section": "Operation Reply Object",
+          "source": "https://raw.githubusercontent.com/asyncapi/spec/v3.0.0/spec/asyncapi.md"
+        }
+      ],
+      "source": "https://raw.githubusercontent.com/asyncapi/spec/v3.0.0/spec/asyncapi.md"
+    },
+    {
+      "id": "reply-no-correlation-id",
+      "severity": "warning",
+      "area": "operations",
+      "pointer": "#/components/messages/StatusRequest",
+      "line": 94,
+      "subject": "StatusRequest",
+      "message": "The message \"StatusRequest\" is a request message of the request/reply operation \"askOrderStatus\" and has no correlationId, so the reply cannot be matched to its request.",
+      "fix": "Add a correlationId with a location (for example $message.header#/correlationId) to the request and to the reply message.",
+      "basis": [
+        {
+          "text": "Definition of the correlation ID used for message tracing or matching.",
+          "section": "Message Object, correlationId",
+          "source": "https://raw.githubusercontent.com/asyncapi/spec/v3.0.0/spec/asyncapi.md"
+        },
+        {
+          "text": "If an operation implements the request/reply pattern, the reply object represents the response message.",
+          "section": "Operation Reply Object",
+          "source": "https://raw.githubusercontent.com/asyncapi/spec/v3.0.0/spec/asyncapi.md"
+        }
+      ],
+      "source": "https://raw.githubusercontent.com/asyncapi/spec/v3.0.0/spec/asyncapi.md"
+    },
+    {
+      "id": "channel-unused",
+      "severity": "warning",
+      "area": "operations",
+      "pointer": "#/channels/auditTrail",
+      "line": 44,
+      "subject": "auditTrail",
+      "message": "The channel \"auditTrail\" is not used by any operation of this application, so nothing says who sends to it or receives from it.",
+      "fix": "Add an operation that uses the channel, or remove the channel.",
+      "basis": [
+        {
+          "text": "Holds a dictionary with all the operations this application MUST implement.",
+          "section": "Operations Object",
+          "source": "https://raw.githubusercontent.com/asyncapi/spec/v3.0.0/spec/asyncapi.md"
+        },
+        {
+          "text": "Sender applications send messages to channels and receiver applications receive messages from channels.",
+          "section": "Definitions, Channel",
+          "source": "https://raw.githubusercontent.com/asyncapi/spec/v3.0.0/spec/asyncapi.md"
+        }
+      ],
+      "source": "https://raw.githubusercontent.com/asyncapi/spec/v3.0.0/spec/asyncapi.md"
+    },
+    {
+      "id": "payload-no-required",
+      "severity": "info",
+      "area": "messages",
+      "pointer": "#/components/messages/OrderPlaced/payload",
+      "line": 85,
+      "subject": "OrderPlaced",
+      "message": "The payload schema of the message \"OrderPlaced\" lists 2 properties and no required list, so a message with none of them is valid.",
+      "fix": "List the properties that every message has under required.",
+      "basis": [
+        {
+          "text": "The AsyncAPI Schema Object is a JSON Schema vocabulary which extends JSON Schema Core and Validation vocabularies.",
+          "section": "Schema Object",
+          "source": "https://raw.githubusercontent.com/asyncapi/spec/v3.0.0/spec/asyncapi.md"
+        }
+      ],
+      "source": "https://raw.githubusercontent.com/asyncapi/spec/v3.0.0/spec/asyncapi.md"
+    },
+    {
+      "id": "message-no-description",
+      "severity": "info",
+      "area": "documentation",
+      "pointer": "#/components/messages/OrderCancelled",
+      "line": 92,
+      "subject": "OrderCancelled",
+      "message": "The message \"OrderCancelled\" has neither a description nor a summary.",
+      "fix": "Say in a sentence what the message means and when it is sent.",
+      "basis": [
+        {
+          "text": "A verbose explanation of the message.",
+          "section": "Message Object, description",
+          "source": "https://raw.githubusercontent.com/asyncapi/spec/v3.0.0/spec/asyncapi.md"
+        }
+      ],
+      "source": "https://raw.githubusercontent.com/asyncapi/spec/v3.0.0/spec/asyncapi.md"
+    }
+  ],
+  "notes": [],
+  "counts": {
+    "error": 2,
+    "warning": 5,
+    "info": 2
+  },
+  "gate": {
+    "failOn": "warning",
+    "pass": false,
+    "reason": "2 errors, 5 warnings"
+  }
+}

@@ -1,0 +1,72 @@
+asyncapi-security-check: examples/orders-events.yaml
+AsyncAPI 3.0.0, yaml, "Orders Events": 3 servers, 5 channels, 3 operations, 4 messages, 2 security schemes
+areas:
+  Servers                   fail   server-no-security x1, server-plain-protocol x1
+  Security schemes          warn   apikey-in-query x1
+  Messages                  warn   message-no-payload x1, payload-no-required x1
+  Operations and channels   warn   reply-no-correlation-id x2, channel-unused x1
+  References                pass   no finding
+  Documentation             info   message-no-description x1
+findings: 2 error, 5 warning, 2 info
+
+Servers (2 findings)
+
+  ERROR    server-no-security  #/servers/broker  line 7
+           The server "broker" declares no security scheme, so the document says nothing about how a client proves who it is when it connects.
+           basis: "A declaration of which security schemes can be used with this server." (Server Object, security, https://raw.githubusercontent.com/asyncapi/spec/v3.0.0/spec/asyncapi.md)
+           fix: Add the scheme (or the alternatives) that a client has to satisfy to connect, under security of the server.
+
+  ERROR    server-plain-protocol  #/servers/broker/protocol  line 9
+           The server "broker" uses the plain protocol amqp, and the specification lists amqps for the same protocol. Messages, and the credentials that go with them, can be read and changed on the way.
+           basis: "Supported protocol include, but are not limited to: amqp, amqps, http, https, ibmmq, jms, kafka, kafka-secure, anypointmq, mqtt, secure-mqtt, solace, stomp, stomps, ws, wss, mercure, googlepubsub, pulsar." (Server Object, protocol, version 2.6.0, https://raw.githubusercontent.com/asyncapi/spec/v2.6.0/spec/asyncapi.md)
+           fix: Use amqps (TLS) for this server, and keep amqp for a broker on the local machine only.
+
+Security schemes (1 finding)
+
+  WARNING  apikey-in-query  #/components/securitySchemes/feedKey/in  line 77
+           The security scheme "feedKey" sends an API key in the query. A key in a URL is shown and logged in many places.
+           basis: "The location of the API key. Valid values are "user" and "password" for apiKey and "query", "header" or "cookie" for httpApiKey." (Security Scheme Object, in, https://raw.githubusercontent.com/asyncapi/spec/v3.0.0/spec/asyncapi.md)
+           basis: "It is therefore unwise to include information within a URI that is sensitive, personally identifiable, or a risk to disclose." (17.9 Disclosure of Sensitive Information in URIs, https://www.rfc-editor.org/rfc/rfc9110.txt)
+           fix: Send the key in a header (in: header) instead.
+
+Messages (2 findings)
+
+  WARNING  message-no-payload  #/components/messages/OrderCancelled  line 92
+           The message "OrderCancelled" has no payload schema, so a receiver cannot validate what it gets and a sender cannot tell what it may send.
+           basis: "Definition of the message payload." (Message Object, payload, https://raw.githubusercontent.com/asyncapi/spec/v3.0.0/spec/asyncapi.md)
+           basis: "A message MAY contain a payload and MAY also contain headers." (Definitions, Message, https://raw.githubusercontent.com/asyncapi/spec/v3.0.0/spec/asyncapi.md)
+           fix: Add a payload with a schema (type, properties and required).
+
+  INFO     payload-no-required  #/components/messages/OrderPlaced/payload  line 85
+           The payload schema of the message "OrderPlaced" lists 2 properties and no required list, so a message with none of them is valid.
+           basis: "The AsyncAPI Schema Object is a JSON Schema vocabulary which extends JSON Schema Core and Validation vocabularies." (Schema Object, https://raw.githubusercontent.com/asyncapi/spec/v3.0.0/spec/asyncapi.md)
+           fix: List the properties that every message has under required.
+
+Operations and channels (3 findings)
+
+  WARNING  reply-no-correlation-id  #/components/messages/StatusReply  line 103
+           The message "StatusReply" is a reply message of the request/reply operation "askOrderStatus" and has no correlationId, so the reply cannot be matched to its request.
+           basis: "Definition of the correlation ID used for message tracing or matching." (Message Object, correlationId, https://raw.githubusercontent.com/asyncapi/spec/v3.0.0/spec/asyncapi.md)
+           basis: "If an operation implements the request/reply pattern, the reply object represents the response message." (Operation Reply Object, https://raw.githubusercontent.com/asyncapi/spec/v3.0.0/spec/asyncapi.md)
+           fix: Add a correlationId with a location (for example $message.header#/correlationId) to the request and to the reply message.
+
+  WARNING  reply-no-correlation-id  #/components/messages/StatusRequest  line 94
+           The message "StatusRequest" is a request message of the request/reply operation "askOrderStatus" and has no correlationId, so the reply cannot be matched to its request.
+           basis: "Definition of the correlation ID used for message tracing or matching." (Message Object, correlationId, https://raw.githubusercontent.com/asyncapi/spec/v3.0.0/spec/asyncapi.md)
+           basis: "If an operation implements the request/reply pattern, the reply object represents the response message." (Operation Reply Object, https://raw.githubusercontent.com/asyncapi/spec/v3.0.0/spec/asyncapi.md)
+           fix: Add a correlationId with a location (for example $message.header#/correlationId) to the request and to the reply message.
+
+  WARNING  channel-unused  #/channels/auditTrail  line 44
+           The channel "auditTrail" is not used by any operation of this application, so nothing says who sends to it or receives from it.
+           basis: "Holds a dictionary with all the operations this application MUST implement." (Operations Object, https://raw.githubusercontent.com/asyncapi/spec/v3.0.0/spec/asyncapi.md)
+           basis: "Sender applications send messages to channels and receiver applications receive messages from channels." (Definitions, Channel, https://raw.githubusercontent.com/asyncapi/spec/v3.0.0/spec/asyncapi.md)
+           fix: Add an operation that uses the channel, or remove the channel.
+
+Documentation (1 finding)
+
+  INFO     message-no-description  #/components/messages/OrderCancelled  line 92
+           The message "OrderCancelled" has neither a description nor a summary.
+           basis: "A verbose explanation of the message." (Message Object, description, https://raw.githubusercontent.com/asyncapi/spec/v3.0.0/spec/asyncapi.md)
+           fix: Say in a sentence what the message means and when it is sent.
+
+GATE: FAIL - 2 errors, 5 warnings
