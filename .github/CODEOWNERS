@@ -1,0 +1,12 @@
+# Every change is reviewed by a maintainer.
+* @innerluxesdev
+
+# The names and sentences come from the AsyncAPI Specification and the protocol pages, and the readers and the checks decide every line of the report; changes need extra care.
+/src/data.js @innerluxesdev
+/research/ @innerluxesdev
+/src/json.js @innerluxesdev
+/src/yaml.js @innerluxesdev
+/src/doc.js @innerluxesdev
+/src/files.js @innerluxesdev
+/src/rules.js @innerluxesdev
+/src/check.js @innerluxesdev
